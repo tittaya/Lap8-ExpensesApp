@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {v4} from 'uuid';
 import axios from 'axios';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
+import firebase from 'D:/lab8-expenses-1/src/firebase/firebase.js'
 
 import Header from './components/Header';
 import AddTransaction from './components/AddTransaction';
@@ -19,34 +20,12 @@ export default class App extends Component {
 
   loadData = () => {
     // get data from variable
-    const data = [ 
-      {
-        id: v4(),
-        name: 'Dinner with family',
-        amount: -1250,
-        date: new Date(2020,1,28)
-      },
-      {
-        id: v4(),
-        name: 'Movie',
-        amount: -200,
-        date: new Date(2020,1,29)
-      },
-      {
-        id: v4(),
-        name: 'Lottery',
-        amount: 1500,
-        date: new Date(2020,2,2)
-      },
-      {
-        id: v4(),
-        name: 'Salary',
-        amount: 6500,
-        date: new Date(2020,1,25)
-      }
-    ];
-
-    this.setState( { transactions: data } );
+    firebase.firestore().collection('data').doc('doc').collection('expenses')
+    .onSnapshot(item => {
+      this.setState({
+        transactions: item,
+      })
+    })
   }
 
   loadJsonData = () => {
@@ -60,8 +39,18 @@ export default class App extends Component {
 
   componentDidMount() {
     // this.loadData();   // load data from variable
-    this.loadJsonData();  // load data from JSON file on server
-    // this.loadFirebase(); // load data from Firebase
+    //this.loadJsonData();  // load data from JSON file on server
+    //this.loadFirebase(); // load data from Firebase
+    firebase.firestore().collection('data').doc('doc').collection('expenses')
+    .get()
+    .then((querySnapshot) => {
+      let transactions = []
+      querySnapshot.forEach((doc) => {
+        transactions.push(doc.data())
+      })
+      this.setState({transactions})
+    })
+
   }
 
   validateForm = (name,amount) => {
@@ -84,22 +73,34 @@ export default class App extends Component {
     if(!this.validateForm(name,amount)) {
       return false;
     }
-
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
+                      "Jul","Aug","Sep","Oct","Nov","Dec"];
+    const t_date = new Date();
+    const date_str = t_date.getDate()+' '+monthNames[t_date.getMonth()]+' '+(t_date.getYear()+1900);
     const newTransaction = {
       id: v4(),
-      name,
+      name: name,
       amount: +amount,
-      date: new Date()
+      date: date_str
     }
 
     this.state.transactions.unshift(newTransaction);
     this.setState( { transactions: this.state.transactions } );
+    firebase.firestore().collection('data').doc('doc').collection('expenses').add(newTransaction);
   }
 
   clearTransactions = () => {
     let ans = window.confirm("You are going to clear all transaction history!!!")
     if (ans) {
       this.setState( { transactions: [] } );
+        firebase.firestore().collection('data').doc('doc').collection('expenses')
+       .get()
+       .then((querySnapshot) => {
+         querySnapshot.forEach((doc) => {
+           doc.ref.delete()
+         })
+       })
+
     }
   }
 
@@ -126,3 +127,4 @@ export default class App extends Component {
     )
   }
 }
+

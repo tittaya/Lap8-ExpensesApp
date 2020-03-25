@@ -2,11 +2,16 @@ import React, { Component } from 'react'
 
 export default class Transaction extends Component {
   render() {
-    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
-                      "Jul","Aug","Sep","Oct","Nov","Dec"];
-    const { name,amount,date } = this.props.transaction;
-    const t_date = new Date(date);
-    const date_str = t_date.getDate()+' '+monthNames[t_date.getMonth()]+' '+(t_date.getYear()+1900);
+    // const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
+    //                   "Jul","Aug","Sep","Oct","Nov","Dec"];
+    //const { name,amount,date_str } = this.props.transaction;
+    const name = this.props.transaction.name;
+    const amount = this.props.transaction.amount;
+    const date_str = this.props.transaction.date;
+
+    console.log(date_str)
+    // const t_date = new Date(date);
+    // const date_str = t_date.getDate()+' '+monthNames[t_date.getMonth()]+' '+(t_date.getYear()+1900);
 
     return (  
       <tr className={amount<0?'minus':'plus'}>
